@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9F1F5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Mi Meditación</title>
+<style>
+:root{--bg:#E9F1F5;--card:#fff;--ink:#1F3A4D;--soft:#6B8496;--aqua:#6CC5B0;--aqua2:#4FAF99;--lila:#B9A8F0;--durazno:#FFC9A8;--rojo:#E26D6D;--sombra:0 8px 24px rgba(31,58,77,.10)}
+@media(prefers-color-scheme:dark){:root{--bg:#14232E;--card:#1D3140;--ink:#E8F1F6;--soft:#9DB3C2;--sombra:0 8px 24px rgba(0,0,0,.3)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#app{max-width:480px;margin:0 auto;min-height:100%;padding:12px 18px 28px;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;position:relative;height:48px}
+h1{font-size:1.25rem;margin:0;font-weight:700}
+.icono{border:0;background:var(--card);color:var(--ink);width:44px;height:44px;border-radius:50%;font-size:1.3rem;box-shadow:var(--sombra);cursor:pointer}
+.menu{position:absolute;right:0;top:52px;background:var(--card);border-radius:18px;box-shadow:var(--sombra);padding:6px;z-index:5;min-width:220px}
+.menu button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:12px 14px;border-radius:12px;cursor:pointer}
+.menu button:active{background:var(--bg)}
+.menu .peligro{color:var(--rojo)}
+.oculto{display:none!important}
+.saludo{color:var(--soft);margin:6px 0 0;text-align:center}
+.reloj{position:relative;width:min(78vw,300px);aspect-ratio:1;margin:22px auto 18px;display:grid;place-items:center}
+.aro{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,var(--lila) 120%);opacity:.55}
+.aro.b{inset:9%;background:radial-gradient(circle at 35% 30%,#fff,var(--aqua) 130%);opacity:.7}
+.corriendo .aro{animation:resp 6s ease-in-out infinite}
+.corriendo .aro.b{animation:resp 6s ease-in-out infinite .4s}
+@keyframes resp{50%{transform:scale(1.06)}}
+@media(prefers-reduced-motion:reduce){.aro{animation:none!important}}
+#tiempo{position:relative;font-size:clamp(2.4rem,13vw,3.4rem);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.fila{display:flex;gap:12px;justify-content:center}
+.btn{border:0;border-radius:999px;font:inherit;font-weight:700;padding:15px 22px;cursor:pointer;color:var(--ink);box-shadow:var(--sombra);transition:transform .1s}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.4;box-shadow:none}
+.principal{background:var(--aqua);width:100%;font-size:1.2rem;padding:18px;color:#0E3A33}
+.parcial{background:var(--durazno);flex:1;color:#4A2A12}
+.guardar{background:var(--lila);flex:1;color:#2A2160}
+.link{background:none;border:0;color:var(--soft);font:inherit;margin:12px auto 0;display:block;cursor:pointer;text-decoration:underline}
+.grid{display:grid;gap:12px;margin-top:14px}
+#parciales{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:8px}
+#parciales li{background:var(--card);border-radius:16px;padding:12px 16px;display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;box-shadow:var(--sombra)}
+#parciales span:last-child{color:var(--soft)}
+.reporte-btn{margin-top:20px;background:var(--card);width:100%}
+.tabs{display:flex;background:var(--card);border-radius:999px;padding:5px;margin:14px 0;box-shadow:var(--sombra)}
+.tabs button{flex:1;border:0;background:none;color:var(--soft);font:inherit;font-weight:700;padding:11px;border-radius:999px;cursor:pointer}
+.tabs button.on{background:var(--aqua);color:#0E3A33}
+.tarjeta{background:var(--card);border-radius:24px;padding:18px;box-shadow:var(--sombra)}
+.stats{display:flex;gap:10px;margin-bottom:14px}
+.stats div{flex:1;background:var(--bg);border-radius:16px;padding:10px;text-align:center}
+.stats b{display:block;font-size:1.2rem}.stats small{color:var(--soft)}
+svg text{fill:var(--soft);font-family:inherit;font-size:11px}
+.vacio{text-align:center;color:var(--soft);padding:36px 10px}
+dialog{border:0;border-radius:24px;padding:24px;background:var(--card);color:var(--ink);max-width:320px;box-shadow:var(--sombra)}
+dialog::backdrop{background:rgba(20,35,46,.5)}
+dialog p{margin:0 0 18px;line-height:1.4}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;z-index:9}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1 id="titulo">Mi Meditación</h1>
+  <button class="icono" id="btnMenu" aria-label="Menú" aria-expanded="false">⋮</button>
+  <div class="menu oculto" id="menu">
+    <button id="miInstalar" class="oculto">Instalar app</button>
+    <button id="miReiniciar" class="peligro">Reiniciar aplicación</button>
+  </div>
+</header>
+
+<main id="vistaInicio">
+  <p class="saludo" id="saludo">Respira, y cuando quieras, empieza.</p>
+  <div class="reloj" id="reloj"><div class="aro"></div><div class="aro b"></div><div id="tiempo">00:00</div></div>
+  <button class="btn principal" id="btnIniciar">Iniciar</button>
+  <div class="fila grid">
+    <button class="btn parcial" id="btnParcial" disabled>Parcial</button>
+    <button class="btn guardar" id="btnGuardar" disabled>Guardar sesión</button>
+  </div>
+  <button class="link oculto" id="btnDescartar">Descartar sesión</button>
+  <ul id="parciales"></ul>
+  <button class="btn reporte-btn" id="btnReporte">📊 Ver reporte</button>
+</main>
+
+<main id="vistaReporte" class="oculto">
+  <div class="tabs" role="tablist">
+    <button data-r="hoy" class="on">Hoy</button><button data-r="semana">Semana</button><button data-r="mes">Mes</button>
+  </div>
+  <div class="tarjeta">
+    <div class="stats"><div><b id="sTotal">0 min</b><small>Total</small></div><div><b id="sSes">0</b><small>Sesiones</small></div><div><b id="sProm">0 min</b><small>Promedio</small></div></div>
+    <div id="grafica"></div>
+  </div>
+  <button class="btn reporte-btn" id="btnVolver">← Volver al cronómetro</button>
+</main>
+</div>
+
+<dialog id="dlg">
+  <p><b>¿Reiniciar la aplicación?</b><br>Se borrarán todas tus sesiones y datos. Esta acción no se puede deshacer.</p>
+  <div class="fila"><button class="btn" style="background:var(--bg)" id="dNo">Cancelar</button><button class="btn" style="background:var(--rojo);color:#fff" id="dSi">Borrar todo</button></div>
+</dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const KS='med_sesiones',KT='med_timer';
+const leer=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+let ses=leer(KS,[]);
+let t=leer(KT,{acc:0,start:null,laps:[]});
+const guardarT=()=>localStorage.setItem(KT,JSON.stringify(t));
+const ms=()=>t.acc+(t.start?Date.now()-t.start:0);
+const p2=n=>String(n).padStart(2,'0');
+function fmt(m){const s=Math.floor(m/1000),h=Math.floor(s/3600),mi=Math.floor(s%3600/60);return(h?h+':'+p2(mi):p2(mi))+':'+p2(s%60)}
+function fmtMin(seg){const m=seg/60;return m<1?Math.round(seg)+' s':(m<10?m.toFixed(1).replace('.0',''):Math.round(m))+' min'}
+const clave=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+function toast(x){const e=document.createElement('div');e.className='toast';e.textContent=x;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
+
+/* ---- Cronómetro ---- */
+let wl=null;
+async function pantallaActiva(on){try{if(on&&'wakeLock'in navigator)wl=await navigator.wakeLock.request('screen');else if(wl){wl.release();wl=null}}catch{}}
+function pintar(){
+  const corre=!!t.start,hay=ms()>0;
+  $('#tiempo').textContent=fmt(ms());
+  $('#reloj').classList.toggle('corriendo',corre);
+  $('#btnIniciar').textContent=corre?'Pausar':(hay?'Continuar':'Iniciar');
+  $('#btnParcial').disabled=!corre;
+  $('#btnGuardar').disabled=!hay;
+  $('#btnDescartar').classList.toggle('oculto',!hay||corre);
+  $('#saludo').textContent=corre?'Estás presente. Sigue respirando.':(hay?'En pausa. Continúa cuando quieras.':'Respira, y cuando quieras, empieza.');
+}
+function pintarParciales(){
+  $('#parciales').innerHTML=t.laps.map((l,i)=>`<li><span>Parcial ${i+1} · ${fmt(l.total)}</span><span>+${fmt(l.dif)}</span></li>`).reverse().join('');
+}
+$('#btnIniciar').onclick=()=>{
+  if(t.start){t.acc+=Date.now()-t.start;t.start=null;pantallaActiva(false)}
+  else{t.start=Date.now();pantallaActiva(true)}
+  guardarT();pintar();
+};
+$('#btnParcial').onclick=()=>{
+  const total=ms(),prev=t.laps.length?t.laps[t.laps.length-1].total:0;
+  t.laps.push({total,dif:total-prev});guardarT();pintarParciales();
+};
+$('#btnGuardar').onclick=()=>{
+  const total=ms();
+  if(total<1000){toast('Medita al menos un segundo para guardar');return}
+  ses.push({f:new Date().toISOString(),seg:Math.round(total/1000),parciales:t.laps.map(l=>Math.round(l.total/1000))});
+  localStorage.setItem(KS,JSON.stringify(ses));
+  limpiarT();toast('Sesión guardada ✓');
+};
+$('#btnDescartar').onclick=()=>{limpiarT();toast('Sesión descartada')};
+function limpiarT(){t={acc:0,start:null,laps:[]};guardarT();pantallaActiva(false);pintar();pintarParciales()}
+setInterval(()=>{if(t.start)$('#tiempo').textContent=fmt(ms())},250);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){pintar();if(t.start)pantallaActiva(true)}});
+
+/* ---- Reporte ---- */
+let rango='hoy';
+function barras(datos,unidad){
+  const max=Math.max(...datos.map(d=>d.v),1),W=340,H=190,pb=26,pt=18,n=datos.length;
+  const bw=Math.min(36,(W-10)/n*0.65),paso=(W-10)/n;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Gráfica de minutos meditados">`;
+  s+=`<line x1="0" x2="${W}" y1="${H-pb}" y2="${H-pb}" stroke="currentColor" opacity=".15"/>`;
+  datos.forEach((d,i)=>{
+    const h=d.v?Math.max(4,(d.v/max)*(H-pb-pt)):0,x=5+i*paso+(paso-bw)/2,y=H-pb-h;
+    if(d.v)s+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="${Math.min(10,bw/2)}" fill="${d.hoy?'#B9A8F0':'#6CC5B0'}"/>`;
+    if(d.v&&n<=12)s+=`<text x="${x+bw/2}" y="${y-5}" text-anchor="middle">${Math.round(d.v*10)/10}</text>`;
+    if(d.l!=='')s+=`<text x="${x+bw/2}" y="${H-8}" text-anchor="middle">${d.l}</text>`;
+  });
+  return s+'</svg><div style="text-align:center;color:var(--soft);font-size:.8rem">'+unidad+'</div>';
+}
+function reporte(){
+  const hoy=new Date(),kh=clave(hoy);
+  let datos=[],lista=[],unidad='';
+  const porDia={};
+  ses.forEach(x=>{const k=clave(new Date(x.f));(porDia[k]=porDia[k]||[]).push(x)});
+  if(rango==='hoy'){
+    lista=porDia[kh]||[];
+    datos=lista.map((x,i)=>({v:x.seg/60,l:new Date(x.f).getHours()+':'+p2(new Date(x.f).getMinutes())}));
+    unidad='Minutos por sesión de hoy';
+  }else if(rango==='semana'){
+    const dn=['D','L','M','M','J','V','S'];
+    for(let i=6;i>=0;i--){const d=new Date(hoy);d.setDate(d.getDate()-i);const l=porDia[clave(d)]||[];lista=lista.concat(l);
+      datos.push({v:l.reduce((a,x)=>a+x.seg,0)/60,l:dn[d.getDay()],hoy:i===0})}
+    unidad='Minutos por día · últimos 7 días';
+  }else{
+    const dias=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+    for(let i=1;i<=dias;i++){const d=new Date(hoy.getFullYear(),hoy.getMonth(),i);const l=porDia[clave(d)]||[];lista=lista.concat(l);
+      datos.push({v:l.reduce((a,x)=>a+x.seg,0)/60,l:(i===1||i%5===0)?i:'',hoy:i===hoy.getDate()})}
+    unidad='Minutos por día · '+hoy.toLocaleDateString('es',{month:'long'});
+  }
+  const tot=lista.reduce((a,x)=>a+x.seg,0);
+  $('#sTotal').textContent=fmtMin(tot);$('#sSes').textContent=lista.length;
+  $('#sProm').textContent=lista.length?fmtMin(tot/lista.length):'0 min';
+  $('#grafica').innerHTML=lista.length?barras(datos,unidad):'<div class="vacio">🌱<br>Aún no hay sesiones en este periodo.<br>Tu primera meditación aparecerá aquí.</div>';
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');rango=b.dataset.r;reporte()});
+function vista(r){
+  $('#vistaInicio').classList.toggle('oculto',r);$('#vistaReporte').classList.toggle('oculto',!r);
+  $('#titulo').textContent=r?'Tu progreso':'Mi Meditación';if(r)reporte();
+}
+$('#btnReporte').onclick=()=>vista(true);
+$('#btnVolver').onclick=()=>vista(false);
+
+/* ---- Menú y reinicio ---- */
+const menu=$('#menu');
+$('#btnMenu').onclick=e=>{e.stopPropagation();const a=menu.classList.toggle('oculto');$('#btnMenu').setAttribute('aria-expanded',!a)};
+document.addEventListener('click',()=>menu.classList.add('oculto'));
+$('#miReiniciar').onclick=()=>$('#dlg').showModal();
+$('#dNo').onclick=()=>$('#dlg').close();
+$('#dSi').onclick=()=>{
+  localStorage.clear();ses=[];limpiarT();$('#dlg').close();vista(false);toast('Aplicación reiniciada');
+};
+let instalar=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();instalar=e;$('#miInstalar').classList.remove('oculto')});
+$('#miInstalar').onclick=async()=>{if(instalar){instalar.prompt();await instalar.userChoice;instalar=null;$('#miInstalar').classList.add('oculto')}};
+
+pintar();pintarParciales();
+if(t.start)pantallaActiva(true);
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
+</script>
+</body>
+</html>

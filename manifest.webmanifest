@@ -1,0 +1,17 @@
+{
+  "name": "Mi Meditación",
+  "short_name": "Meditación",
+  "description": "Cronómetro y reportes de tu tiempo de meditación",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E9F1F5",
+  "theme_color": "#E9F1F5",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
